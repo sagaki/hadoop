@@ -8,7 +8,6 @@ ssh-keygen
 scp .ssh/id_rsa.pub master:.ssh/
 cat id_rsa.pub >> authorized_keys
 scp .ssh/id_rsa.pub slave:.ssh/
-tar -zxvf hadoop
 vi /etc/profile
 ```
 
@@ -37,7 +36,7 @@ vi core-site.xml
     </property>
     <property>
         <name>hadoop.tmp.dir</name>
-        <value>/opt/hadoop/tmp</value>
+        <value>hadoop/tmp</value>
     </property>
 ```
 
@@ -62,6 +61,10 @@ vi yarn-site.xml
         <name>yarn.resourcemanager.hostname</name>
         <value>master</value>
     </property>
+    <property>
+      <name>yarn.nodemanager.aux-service</name>
+      <value>mapreduce_shuffle</value>
+    </property>
 ```
 
 ```dos
@@ -75,13 +78,6 @@ slave2
 ```
 
 ```dos
-scp hadoop slave:
-hdsf namenode -format
-start-all.sh
-```
-
-```dos
-tar -zxvf hive
 vi hive/conf/hive-site.xml
 ```
 
@@ -117,15 +113,13 @@ GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY '123456';
 ```
 
 ```dos
-hive/bin/hive
-tar -zxvf spark
 cp spark-env.sh.template spark-env.sh
 vi spark-env.sh
 ```
 
 ```sh
-export JAVA_HOME=/opt/jdk
-export HADOOP_HOME=/opt/hadoop
+export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+export HADOOP_HOME=hadoop
 export HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop
 SPARK_MASTER_HOST=master
 ```
@@ -139,7 +133,30 @@ slave1
 slave2
 ```
 
-```dos
-scp -r /opt/spark slave:
-spark/sbin/start-all.sh
+```sql
+-- 创建film表，分为电影名称、上映日期、票房三个字段，数据格式以“，”分割
+create table film(name string,dates string,prince int) row format delimited fields terminated by ',';
+-- 将本地的film_log3.log文件数据加载到film表
+load data local inpath 'film_log3.log'into table film;
+-- 查看film表数据的前十条
+select * from film limit 10;
+-- 查询2014年所有票房信息并将结果存储到新表“film_2014”中
+create table film_2014 as select * from film where dates like'2014%';
+-- 将2015年票房前十数据存储到linux下的“'/home/data'”目录下
+insert overwrite local directory'/home/hadoop/data'select name,sum(prince)
+ p from film where dates like'2015%' group by name order by p desc limit 10;
+```
+
+```scala
+import org.apache.spark.sql.types._
+import spark.implicits._
+val name=StructField("name",StringType)
+val prince=StructField("prince",DoubleType)
+val dates=StructField("dates",StringType)
+val data=Array(name,dates,prince)
+val schema=StructType(data)
+val files="film_log3.log"
+val df=spark.read.schema(schema).option("sep",",").csv(files)
+df.createOrReplaceTempView("film")
+spark.sql("select name,sum(prince) p from film group by name order by p desc limit 10").collect.foreach(println)
 ```
