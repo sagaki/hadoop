@@ -42,17 +42,6 @@ vi core-site.xml
 ```
 
 ```dos
-vi hdfs-site.xml
-```
-
-```xml
-    <property>
-        <name>dfs.replication</name>
-        <value>2</value>
-    </property>
-```
-
-```dos
 cp mapred-site.xml.template mapred-site.xml
 vi mapred-site.xml
 ```
@@ -86,20 +75,12 @@ slave2
 ```
 
 ```dos
-scp jdk slave:
 scp hadoop slave:
 hdsf namenode -format
 start-all.sh
-vi /etc/my.cnf
-```
-
-```text
-character_set_server = utf8
-collation-server = utf8_general_ci
 ```
 
 ```dos
-service mysql restart
 tar -zxvf hive
 vi hive/conf/hive-site.xml
 ```
