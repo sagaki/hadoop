@@ -8,17 +8,6 @@ ssh-keygen
 scp .ssh/id_rsa.pub master:.ssh/
 cat id_rsa.pub >> authorized_keys
 scp .ssh/id_rsa.pub slave:.ssh/
-tar -zxvf jdk
-vi /etc/profile
-```
-
-```sh
-export JAVA_HOME=/opt/jdk
-export PATH=$JAVA_HOME/bin:$PATH
-```
-
-```dos
-source /etc/profile
 tar -zxvf hadoop
 vi /etc/profile
 ```
