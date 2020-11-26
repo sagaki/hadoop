@@ -62,7 +62,7 @@ vi yarn-site.xml
         <value>master</value>
     </property>
     <property>
-      <name>yarn.nodemanager.aux-service</name>
+      <name>yarn.nodemanager.aux-services</name>
       <value>mapreduce_shuffle</value>
     </property>
 ```
